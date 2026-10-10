@@ -1,19 +1,25 @@
-mod units;
+use nginxproxymanager_client::ConnectionInformation;
+
 
 
 #[tokio::test]
 async fn connection_established() {
-        //units::env_properly_configured();
+    let info = ConnectionInformation::from_env();
+    
 }
 
 
 #[tokio::test]
-async fn credentials_valid() {
-        //units::env_properly_configured();
+async fn credentials_validation() {
+    let info = ConnectionInformation::from_env();
+
+    
 }
 
 
 #[tokio::test]
 async fn access_list_validation() {
-        //units::env_properly_configured();
+    let info = ConnectionInformation::from_env();
+
+    
 }
