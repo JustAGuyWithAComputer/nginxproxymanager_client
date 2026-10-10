@@ -33,6 +33,17 @@ impl NginxProxyManagerClient {
     }
 
 
+    pub fn from_env() -> Self {
+        NginxProxyManagerClient {
+            header_info: HeaderMap::new(),
+            connection_info: ConnectionInformation::from_env(),
+
+            token: String::new(),
+            bearer: String::new()
+        }
+    }
+
+
     fn update_token_and_header(&mut self, new_token: String) {
         self.bearer = String::from("Bearer ") + &new_token.to_string();
         self.token = new_token;
@@ -76,7 +87,7 @@ impl NginxProxyManagerClient {
 
     pub async fn refresh_token(&mut self) -> bool {
         let client = reqwest::Client::new();
-        
+
         let response = client.get(
             self.connection_info.url.to_string() + "/api/tokens"
         ).headers(self.header_info.clone()).send().await.unwrap();

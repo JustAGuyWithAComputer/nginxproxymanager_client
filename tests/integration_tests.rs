@@ -1,15 +1,12 @@
 use nginxproxymanager_client::{
     client::NginxProxyManagerClient,
-    objects::information::ConnectionInformation
 };
 
 
 
 #[tokio::test]
 async fn login_information_valid() {
-    let mut client = NginxProxyManagerClient::new(
-        ConnectionInformation::from_env()
-    );
+    let mut client = NginxProxyManagerClient::from_env();
 
     assert_eq!(client.login().await, true, "failed to login!");
 
