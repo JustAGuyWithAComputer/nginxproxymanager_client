@@ -3,7 +3,7 @@ use nginxproxymanager_client::object::ConnectionInformation;
 
 
 #[tokio::test]
-async fn can_login() {
+async fn attempt_login() {
     let info = ConnectionInformation::from_env();
 
     
@@ -11,7 +11,7 @@ async fn can_login() {
 
 
 #[tokio::test]
-async fn use_access_list() {
+async fn modify_access_list() {
     let info: ConnectionInformation = ConnectionInformation::from_env();
 
     
