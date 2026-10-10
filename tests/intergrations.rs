@@ -3,14 +3,7 @@ use nginxproxymanager_client::object::ConnectionInformation;
 
 
 #[tokio::test]
-async fn connection_established() {
-    let info = ConnectionInformation::from_env();
-    
-}
-
-
-#[tokio::test]
-async fn credentials_validation() {
+async fn can_login() {
     let info = ConnectionInformation::from_env();
 
     
@@ -18,8 +11,8 @@ async fn credentials_validation() {
 
 
 #[tokio::test]
-async fn access_list_validation() {
-    let info = ConnectionInformation::from_env();
+async fn use_access_list() {
+    let info: ConnectionInformation = ConnectionInformation::from_env();
 
     
 }

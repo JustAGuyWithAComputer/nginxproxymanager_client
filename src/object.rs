@@ -6,9 +6,14 @@ pub struct ConnectionInformation {
 
 
 impl ConnectionInformation {
+    fn trim_url(url: String) -> String {
+        return url.strip_suffix("/").unwrap_or(&url).to_string();
+    }
+
+
     pub fn new(url: String, email: String, password: String) -> Self {
         ConnectionInformation { 
-            url: url, 
+            url: ConnectionInformation::trim_url(url), 
             email: email, 
             password: password, 
         }
@@ -26,7 +31,7 @@ impl ConnectionInformation {
         let password = env::var("NPM_CLIENT_PASSWORD").unwrap_or("".to_string());
 
         ConnectionInformation::new(
-            url,
+            ConnectionInformation::trim_url(url),
             email,
             password
         )
