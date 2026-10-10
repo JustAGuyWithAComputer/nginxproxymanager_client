@@ -13,8 +13,7 @@
                 "args": [
                     "test",
                     "--test",
-                    "*",
-                    "show-output"
+                    "*"
                 ]
             }
         }
