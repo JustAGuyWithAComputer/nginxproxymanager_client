@@ -1,18 +1,26 @@
-use nginxproxymanager_client::object::ConnectionInformation;
+use nginxproxymanager_client::{
+    client::NginxProxyManagerClient,
+    object::ConnectionInformation
+};
 
 
 
 #[tokio::test]
-async fn attempt_login() {
-    let info = ConnectionInformation::from_env();
+async fn login_information_valid() {
+    let mut client = NginxProxyManagerClient::new(
+        ConnectionInformation::from_env()
+    );
 
-    
+    assert_eq!(client.login().await, true, "failed to login!");
 }
 
 
 #[tokio::test]
-async fn modify_access_list() {
-    let info: ConnectionInformation = ConnectionInformation::from_env();
-
+async fn can_modify_access_list() {
+    /*let client = NginxProxyManagerClient::new(
+        ConnectionInformation::from_env()
+    );*/
     
 }
+
+
