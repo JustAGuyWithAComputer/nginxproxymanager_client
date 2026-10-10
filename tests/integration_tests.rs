@@ -1,6 +1,6 @@
 use nginxproxymanager_client::{
     client::NginxProxyManagerClient,
-    object::ConnectionInformation
+    objects::information::ConnectionInformation
 };
 
 
@@ -12,6 +12,9 @@ async fn login_information_valid() {
     );
 
     assert_eq!(client.login().await, true, "failed to login!");
+
+    assert_eq!(client.refresh_token().await, true, "failed to refresh token!");
+    assert_eq!(client.refresh_token().await, true, "failed to refresh token!");
 }
 
 
@@ -22,5 +25,4 @@ async fn can_modify_access_list() {
     );*/
     
 }
-
 

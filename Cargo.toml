@@ -3,11 +3,12 @@ name = "nginxproxymanager_client"
 version = "0.0.1"
 edition = "2024"
 
+
 [dependencies]
-"dotenvy" = "0.15.7"
+dotenvy = "0.15.7"
 serde_json = "1.0.151"
 
-reqwest = { version = "0.13.5", features = ["json"] }
 tokio = { version = "1.53.2", features = ["full"] }
 serde = { version = "1.0.229", features = ["derive"] }
+reqwest = { version = "0.13.5", features = ["json"] }
 

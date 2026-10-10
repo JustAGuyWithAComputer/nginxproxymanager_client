@@ -1,10 +1,26 @@
 use serde::Serialize;
 
 
+#[derive(Serialize)]
+pub struct CredentialInformation {
+    pub identity: String,
+    pub secret: String
+}
+
+
+impl CredentialInformation {
+    pub fn new(email: String, password: String) -> Self {
+        CredentialInformation {
+            identity: email,
+            secret: password
+        }
+    }
+}
+
+
 pub struct ConnectionInformation {
     pub url: String,
-    pub email: String,
-    pub password: String,
+    pub credentials: CredentialInformation
 }
 
 
@@ -16,9 +32,8 @@ impl ConnectionInformation {
 
     pub fn new(url: String, email: String, password: String) -> Self {
         ConnectionInformation { 
-            url: ConnectionInformation::trim_url(url), 
-            email: email, 
-            password: password, 
+            url: ConnectionInformation::trim_url(url),
+            credentials: CredentialInformation::new(email, password)
         }
     }
 
@@ -42,18 +57,3 @@ impl ConnectionInformation {
 }
 
 
-#[derive(Serialize)]
-pub struct CredentialInformation {
-    pub identity: String,
-    pub secret: String
-}
-
-
-impl CredentialInformation {
-    pub fn from(connection_info: &ConnectionInformation) -> Self {
-        CredentialInformation {
-            identity: connection_info.email.to_string(),
-            secret: connection_info.password.to_string()
-        }
-    }
-}
