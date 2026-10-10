@@ -1,4 +1,4 @@
-use nginxproxymanager_client::ConnectionInformation;
+use nginxproxymanager_client::object::ConnectionInformation;
 
 
 
