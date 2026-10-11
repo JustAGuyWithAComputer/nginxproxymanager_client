@@ -125,7 +125,7 @@ impl NginxProxyManagerClient {
     }
 
 
-    pub async fn get_access_list(&mut self, name: String) -> Result<Option<AccessList>, Box<dyn Error>> {
+    pub async fn get_access_list(&mut self, name: String) -> Result<AccessList, Box<dyn Error>> {
         if !self.logged_in {
             self.login().await?;
         }
@@ -149,7 +149,7 @@ impl NginxProxyManagerClient {
         }
 
         if matching_access_list.is_some() {
-            Ok(matching_access_list)
+            Ok(matching_access_list.unwrap())
         } else {
             Err(format!("Failed to find Access List: '{name}'").into())
         }
