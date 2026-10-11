@@ -1,6 +1,5 @@
 use reqwest::{
-    Error, Response, 
-    header::{
+    Error, RequestBuilder, Response, header::{
         AUTHORIZATION, HeaderMap, HeaderValue
     }
 };
@@ -51,7 +50,7 @@ impl NginxProxyManagerClient {
         self.token = new_token;
 
         if self.header_info.contains_key(AUTHORIZATION) {
-            let value = self.header_info.get_mut(AUTHORIZATION).unwrap();
+            let value: &mut HeaderValue = self.header_info.get_mut(AUTHORIZATION).unwrap();
             *value = HeaderValue::from_str(&self.bearer).unwrap();
         } else {
             self.header_info.insert(
@@ -71,7 +70,7 @@ impl NginxProxyManagerClient {
         let response: Response = request.send().await?;
         let response: TokenResponse = response.json().await?;
 
-        let success = response.error.is_none();
+        let success: bool = response.error.is_none();
 
         if success {
             self.update_token_and_header(
@@ -90,14 +89,14 @@ impl NginxProxyManagerClient {
 
 
     pub async fn refresh_token(&mut self) -> Result<bool, Error> {
-        let request = reqwest::Client::new()
+        let request: RequestBuilder = reqwest::Client::new()
             .get(self.connection_info.url.to_string() + "/api/tokens")
             .headers(self.header_info.clone());
 
         let response: Response = request.send().await?;
         let response: TokenResponse = response.json().await?;
 
-        let success = response.error.is_none();
+        let success: bool = response.error.is_none();
 
         if success {
             self.update_token_and_header(
@@ -116,7 +115,7 @@ impl NginxProxyManagerClient {
 
 
     pub async fn get_access_list(&mut self, name: String) -> Result<Option<AccessList>, Error> {
-        let request = reqwest::Client::new()
+        let request: RequestBuilder = reqwest::Client::new()
             .get(reqwest::Url::parse_with_params(
                 &(self.connection_info.url.to_string() + "/api/nginx/access-lists"),
                 &[("expand", "owner,items,clients")]
@@ -137,10 +136,10 @@ impl NginxProxyManagerClient {
 
 
     pub async fn update_access_list(&self, mut access_list: AccessList) -> Result<AccessList, Error> {
-        let id = access_list.id.unwrap();
+        let id: i64 = access_list.id.unwrap();
         access_list.id = None;
         
-        let request = reqwest::Client::new()
+        let request: RequestBuilder = reqwest::Client::new()
             .put(
                 self.connection_info.url.to_string() 
                     + "/api/nginx/access-lists/" 

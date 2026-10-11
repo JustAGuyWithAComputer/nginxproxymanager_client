@@ -1,16 +1,16 @@
 use nginxproxymanager_client::{
-    objects::{
+    client::NginxProxyManagerClient, objects::{
         information::ConnectionInformation, 
-        responses::AccessListClient
-    },
-
-    client::NginxProxyManagerClient, 
+        responses::{
+            AccessList, AccessListClient
+        }
+    }, 
 };
 
 
 #[test]
 fn connection_information_valid() {
-    let info = ConnectionInformation::from_env();
+    let info: ConnectionInformation = ConnectionInformation::from_env();
 
     assert_ne!(info.url, "", "NPM_CLIENT_URL is missing from .env!");
     assert_ne!(info.credentials.identity, "", "NPM_CLIENT_EMAIL is missing from .env!");
@@ -24,7 +24,7 @@ fn connection_information_valid() {
 
 #[tokio::test]
 async fn login_credentials_valid() {
-    let mut client = NginxProxyManagerClient::from_env();
+    let mut client: NginxProxyManagerClient = NginxProxyManagerClient::from_env();
 
     assert_eq!(client.login().await.unwrap(), true, "failed to login!");
 
@@ -35,17 +35,17 @@ async fn login_credentials_valid() {
 
 #[tokio::test]
 async fn can_modify_access_list() {
-    let mut client = NginxProxyManagerClient::from_env();
-    let target_access_list = dotenvy::var("NPM_CLIENT_ACCESS_LIST").unwrap();
+    let mut client: NginxProxyManagerClient = NginxProxyManagerClient::from_env();
+    let target_access_list: String = dotenvy::var("NPM_CLIENT_ACCESS_LIST").unwrap();
 
     assert_eq!(client.login().await.unwrap(), true, "failed to login!");
 
-    let access_list_result = client.get_access_list(target_access_list).await.unwrap();
+    let access_list_result: Option<AccessList> = client.get_access_list(target_access_list).await.unwrap();
 
     assert_eq!(access_list_result.is_some(), true, "failed to find Access List!");
 
     if access_list_result.is_some() {
-        let mut access_list = access_list_result.unwrap();
+        let mut access_list: AccessList = access_list_result.unwrap();
 
         let mut test_entry_index: usize = 0;
         let mut test_entry_exists = false;
@@ -68,8 +68,8 @@ async fn can_modify_access_list() {
             );
         }
 
-        let original = serde_json::to_string(&access_list.clients).unwrap();
-        let result = serde_json::to_string(
+        let original: String = serde_json::to_string(&access_list.clients).unwrap();
+        let result: String = serde_json::to_string(
             &client.update_access_list(access_list).await.unwrap().clients
         ).unwrap();
 
