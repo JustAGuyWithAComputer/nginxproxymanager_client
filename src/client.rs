@@ -66,10 +66,10 @@ impl NginxProxyManagerClient {
         let response: Response = request.send().await?;
         let response: TokenResponse = response.json().await?;
 
-        let success: bool = response.error.is_none();
+        if response.token.is_some() {
+            self.update_token_and_header(response.token.unwrap())?;
 
-        if success {
-            let _ = self.update_token_and_header(response.token.unwrap());
+            return Ok(true)
         } else {
             let error: TokenErrorMessage = response.error.unwrap();
 
@@ -78,8 +78,6 @@ impl NginxProxyManagerClient {
 
             return Err(format!("Failed to login! [{code}] {message}").into())
         }
-
-        return Ok(success)
     }
 
 
@@ -93,10 +91,10 @@ impl NginxProxyManagerClient {
         let response: Response = request.send().await?;
         let response: TokenResponse = response.json().await?;
 
-        let success: bool = response.error.is_none();
-
-        if success {
+        if response.token.is_some() {
             self.update_token_and_header(response.token.unwrap())?;
+
+            return Ok(true)
         } else {
             let error: TokenErrorMessage = response.error.unwrap();
 
@@ -105,8 +103,6 @@ impl NginxProxyManagerClient {
 
             return Err(format!("Failed to refresh token! [{code}] {message}").into())
         }
-
-        Ok(success)
     }
 
 
@@ -126,7 +122,7 @@ impl NginxProxyManagerClient {
             }
         }
 
-        Ok(None)
+        Err(format!("Failed to find Access List: \"{name}\"").into())
     }
 
 
@@ -143,7 +139,7 @@ impl NginxProxyManagerClient {
 
         let response: Response = request.send().await?;
         let response: AccessList = response.json().await?;
-
+        
         Ok(response)
     }
 }
