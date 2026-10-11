@@ -40,7 +40,7 @@ async fn can_modify_access_list() {
 
     assert_eq!(client.login().await.unwrap(), true, "failed to login!");
 
-    let access_list_result = client.get_access_list(target_access_list).await;
+    let access_list_result = client.get_access_list(target_access_list).await.unwrap();
 
     assert_eq!(access_list_result.is_some(), true, "failed to find Access List!");
 
@@ -69,7 +69,9 @@ async fn can_modify_access_list() {
         }
 
         let original = serde_json::to_string(&access_list.clients).unwrap();
-        let result = serde_json::to_string(&client.update_access_list(access_list).await.clients).unwrap();
+        let result = serde_json::to_string(
+            &client.update_access_list(access_list).await.unwrap().clients
+        ).unwrap();
 
         assert_eq!(original, result, "failed to update access list!");
     }
