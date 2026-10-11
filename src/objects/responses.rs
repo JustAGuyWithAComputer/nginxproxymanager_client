@@ -38,7 +38,8 @@ impl AccessListClient {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AccessList {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    // NginxProxyManager doesn't like the AccessList having an id when PUTing.
+    #[serde(skip_serializing)]
     pub id: Option<i64>,
     pub name: String,
     

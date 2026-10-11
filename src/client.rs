@@ -140,11 +140,9 @@ impl NginxProxyManagerClient {
     }
 
 
-    pub async fn update_access_list(&self, mut access_list: AccessList) -> Result<AccessList, Box<dyn Error>> {
+    pub async fn update_access_list(&self, access_list: AccessList) -> Result<AccessList, Box<dyn Error>> {
+        let id: i64 = access_list.id.unwrap();
         let url: &String = &self.connection_info.url;
-
-        // NginxProxyManager doesn't like the access_list having an id when PUTing.
-        let id: i64 = access_list.id.unwrap(); access_list.id = None;
         
         let request: RequestBuilder = reqwest::Client::new()
             .put(format!("{url}/api/nginx/access-lists/{id}"))
