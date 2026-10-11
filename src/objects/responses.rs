@@ -3,7 +3,7 @@ use serde::{
 };
 
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug)]
 pub struct TokenErrorMessage {
     pub code: i64,
     pub message: String
