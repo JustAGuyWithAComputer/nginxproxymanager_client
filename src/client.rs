@@ -54,6 +54,14 @@ impl NginxProxyManagerClient {
             connection_info: ConnectionInformation::from_env(),
         }
     }
+    
+
+    async fn send_into<T: DeserializeOwned>(request: RequestBuilder) -> Result<T, Box<dyn Error>> {
+        let response: Response = request.send().await?;
+        let data: T = response.json().await?;
+
+        Ok(data)
+    }
 
 
     fn update_token_and_header(&mut self, token: String) -> Result<(), Box<dyn Error>> {
@@ -66,14 +74,6 @@ impl NginxProxyManagerClient {
         );
 
         Ok(())
-    }
-
-
-    async fn send_into<T: DeserializeOwned>(request: RequestBuilder) -> Result<T, Box<dyn Error>> {
-        let response: Response = request.send().await?;
-        let data: T = response.json().await?;
-
-        Ok(data)
     }
 
 
