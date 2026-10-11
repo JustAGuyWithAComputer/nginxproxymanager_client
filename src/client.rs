@@ -14,7 +14,6 @@ use crate::objects::{
 
 pub struct NginxProxyManagerClient {
     pub token: String,
-    pub bearer: String,
 
     pub header_info: HeaderMap,
     pub connection_info: ConnectionInformation,
@@ -26,7 +25,6 @@ impl NginxProxyManagerClient {
     pub fn from(url: String, email: String, password: String) -> Self {
         NginxProxyManagerClient { 
             token: String::new(),
-            bearer: String::new(),
 
             header_info: HeaderMap::new(),
             connection_info: ConnectionInformation::from(url, email, password),
@@ -37,7 +35,6 @@ impl NginxProxyManagerClient {
     pub fn from_env() -> Self {
         NginxProxyManagerClient {
             token: String::new(),
-            bearer: String::new(),
 
             header_info: HeaderMap::new(),
             connection_info: ConnectionInformation::from_env(),
@@ -46,19 +43,20 @@ impl NginxProxyManagerClient {
 
 
     fn update_token_and_header(&mut self, new_token: String) {
-        self.bearer = "Bearer ".to_owned() + &new_token;
-        self.token = new_token;
+        self.token = new_token.clone();
 
         self.header_info.insert(
             AUTHORIZATION, 
-            HeaderValue::from_str(&self.bearer).unwrap()
+            HeaderValue::from_str(&format!("Bearer {new_token}")).unwrap()
         );
     }
 
 
     pub async fn login(&mut self) -> Result<bool, Error> {
+        let url: &String = &self.connection_info.url;
+
         let request = reqwest::Client::new()
-            .post(self.connection_info.url.to_string() + "/api/tokens")
+            .post(format!("{url}/api/tokens"))
             .json(&self.connection_info.credentials);
 
 
@@ -84,8 +82,10 @@ impl NginxProxyManagerClient {
 
 
     pub async fn refresh_token(&mut self) -> Result<bool, Error> {
+        let url: &String = &self.connection_info.url;
+
         let request: RequestBuilder = reqwest::Client::new()
-            .get(self.connection_info.url.to_string() + "/api/tokens")
+            .get(format!("{url}/api/tokens"))
             .headers(self.header_info.clone());
 
         let response: Response = request.send().await?;
@@ -110,11 +110,10 @@ impl NginxProxyManagerClient {
 
 
     pub async fn get_access_list(&mut self, name: String) -> Result<Option<AccessList>, Error> {
+        let url: &String = &self.connection_info.url;
+        
         let request: RequestBuilder = reqwest::Client::new()
-            .get(reqwest::Url::parse_with_params(
-                &(self.connection_info.url.to_string() + "/api/nginx/access-lists"),
-                &[("expand", "owner,items,clients")]
-            ).unwrap())
+            .get(format!("{url}/api/nginx/access-lists?expand=owner%2Citems%2Cclients"))
             .headers(self.header_info.clone());
 
         let response: Response = request.send().await?;
@@ -131,15 +130,13 @@ impl NginxProxyManagerClient {
 
 
     pub async fn update_access_list(&self, mut access_list: AccessList) -> Result<AccessList, Error> {
-        let id: i64 = access_list.id.unwrap();
-        access_list.id = None;
+        let url = &self.connection_info.url;
+
+        // NginxProxyManager doesn't like the access_list having an id when PUTing.
+        let id: i64 = access_list.id.unwrap(); access_list.id = None;
         
         let request: RequestBuilder = reqwest::Client::new()
-            .put(
-                self.connection_info.url.to_string() 
-                    + "/api/nginx/access-lists/" 
-                    + &id.to_string()
-            )
+            .put(format!("{url}/api/nginx/access-lists/{id}"))
             .headers(self.header_info.clone())
             .json(&access_list);
 
