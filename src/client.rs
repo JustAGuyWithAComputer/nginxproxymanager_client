@@ -58,9 +58,9 @@ impl NginxProxyManagerClient {
 
     async fn send_into<T: DeserializeOwned>(request: RequestBuilder) -> Result<T, Box<dyn Error>> {
         let response: Response = request.send().await?;
-        let data: T = response.json().await?;
+        let object: T = response.json().await?;
 
-        Ok(data)
+        Ok(object)
     }
 
 
