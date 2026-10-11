@@ -53,6 +53,7 @@ impl NginxProxyManagerClient {
 
     fn update_token_and_header(&mut self, token: String) -> Result<(), Box<dyn Error>> {
         self.token = token.clone();
+        self.logged_in = true;
 
         self.header_info.insert(
             AUTHORIZATION, 
@@ -76,7 +77,6 @@ impl NginxProxyManagerClient {
         let response: TokenResponse = response.json().await?;
 
         if response.token.is_some() {
-            self.logged_in = true;
             self.update_token_and_header(response.token.unwrap())?;
 
             Ok(true)
@@ -109,7 +109,6 @@ impl NginxProxyManagerClient {
         let response: TokenResponse = response.json().await?;
 
         if response.token.is_some() {
-            self.logged_in = true;
             self.update_token_and_header(response.token.unwrap())?;
 
             Ok(true)
