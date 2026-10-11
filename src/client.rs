@@ -13,11 +13,11 @@ use crate::objects::{
 
 
 pub struct NginxProxyManagerClient {
-    pub header_info: HeaderMap,
-    pub connection_info: ConnectionInformation,
-
     pub token: String,
     pub bearer: String,
+
+    pub header_info: HeaderMap,
+    pub connection_info: ConnectionInformation,
 }
 
 
@@ -25,22 +25,22 @@ impl NginxProxyManagerClient {
 
     pub fn from(url: String, email: String, password: String) -> Self {
         NginxProxyManagerClient { 
-            header_info: HeaderMap::new(),
-            connection_info: ConnectionInformation::from(url, email, password),
-
             token: String::new(),
             bearer: String::new(),
+
+            header_info: HeaderMap::new(),
+            connection_info: ConnectionInformation::from(url, email, password),
         }
     }
 
 
     pub fn from_env() -> Self {
         NginxProxyManagerClient {
+            token: String::new(),
+            bearer: String::new(),
+
             header_info: HeaderMap::new(),
             connection_info: ConnectionInformation::from_env(),
-
-            token: String::new(),
-            bearer: String::new()
         }
     }
 
@@ -49,15 +49,10 @@ impl NginxProxyManagerClient {
         self.bearer = "Bearer ".to_owned() + &new_token;
         self.token = new_token;
 
-        if self.header_info.contains_key(AUTHORIZATION) {
-            let value: &mut HeaderValue = self.header_info.get_mut(AUTHORIZATION).unwrap();
-            *value = HeaderValue::from_str(&self.bearer).unwrap();
-        } else {
-            self.header_info.insert(
-                AUTHORIZATION, 
-                HeaderValue::from_str(&self.bearer).unwrap()
-            );
-        }
+        self.header_info.insert(
+            AUTHORIZATION, 
+            HeaderValue::from_str(&self.bearer).unwrap()
+        );
     }
 
 
