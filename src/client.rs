@@ -48,7 +48,7 @@ impl NginxProxyManagerClient {
     }
 
 
-    fn update_token_and_header(&mut self, token: String) -> Result<bool, Box<dyn Error>> {
+    fn update_token_and_header(&mut self, token: String) -> Result<(), Box<dyn Error>> {
         self.token = token.clone();
 
         self.header_info.insert(
@@ -56,7 +56,7 @@ impl NginxProxyManagerClient {
             HeaderValue::from_str(&format!("Bearer {token}"))?
         );
 
-        Ok(true)
+        Ok(())
     }
 
 
