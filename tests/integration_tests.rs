@@ -37,7 +37,7 @@ async fn login_credentials_valid() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 async fn automatic_login_valid() -> Result<(), Box<dyn Error>> {
-    let mut client = NginxProxyManagerClient::from_env();
+    let mut client: NginxProxyManagerClient = NginxProxyManagerClient::from_env();
 
     assert_eq!(client.refresh_token().await?, true, "failed to login automatically!");
 
