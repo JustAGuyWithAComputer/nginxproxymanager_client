@@ -75,11 +75,11 @@ impl NginxProxyManagerClient {
 
         if success {
             self.update_token_and_header(
-                response.token
+                response.token.unwrap()
             );
         } else {
             println!(
-                "Failed to connect login!\n[{:#?}] {:#?}", 
+                "Failed to login!\n[{:#?}] {:#?}", 
                 response.error.clone().unwrap().code, 
                 response.error.unwrap().message
             )
@@ -101,7 +101,7 @@ impl NginxProxyManagerClient {
 
         if success {
             self.update_token_and_header(
-                response.token
+                response.token.unwrap()
             );
         } else {
             println!(

@@ -10,8 +10,8 @@ pub struct TokenErrorMessage {
 
 #[derive(Deserialize, Debug)]
 pub struct TokenResponse {
-    pub token: String,
-    pub expires: String,
+    pub token: Option<String>,
+    pub expires: Option<String>,
 
     pub error: Option<TokenErrorMessage>
 }

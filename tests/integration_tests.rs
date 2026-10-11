@@ -28,8 +28,8 @@ async fn login_credentials_valid() {
 
     assert_eq!(client.login().await.unwrap(), true, "failed to login!");
 
-    assert_eq!(client.refresh_token().await.unwrap(), true, "failed to refresh token!");
-    assert_eq!(client.refresh_token().await.unwrap(), true, "failed to refresh token!");
+    assert_eq!(client.refresh_token().await.unwrap_or(false), true, "failed to refresh token!");
+    assert_eq!(client.refresh_token().await.unwrap_or(false), true, "failed to refresh token!");
 }
 
 
