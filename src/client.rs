@@ -1,6 +1,8 @@
+use std::error::Error;
+
 use reqwest::{
-    Error, RequestBuilder, Response, header::{
-        AUTHORIZATION, HeaderMap, HeaderValue, InvalidHeaderValue
+    RequestBuilder, Response, header::{
+        AUTHORIZATION, HeaderMap, HeaderValue
     }
 };
 
@@ -41,7 +43,7 @@ impl NginxProxyManagerClient {
     }
 
 
-    fn update_token_and_header(&mut self, new_token: String) -> Result<bool, InvalidHeaderValue> {
+    fn update_token_and_header(&mut self, new_token: String) -> Result<bool, Box<dyn Error>> {
         self.token = new_token.clone();
 
         self.header_info.insert(
@@ -53,7 +55,7 @@ impl NginxProxyManagerClient {
     }
 
 
-    pub async fn login(&mut self) -> Result<bool, Error> {
+    pub async fn login(&mut self) -> Result<bool, Box<dyn Error>> {
         let url: &String = &self.connection_info.url;
 
         let request = reqwest::Client::new()
@@ -67,23 +69,21 @@ impl NginxProxyManagerClient {
         let success: bool = response.error.is_none();
 
         if success {
-            let _ = self.update_token_and_header(
-                response.token.unwrap()
-            );
+            let _ = self.update_token_and_header(response.token.unwrap());
         } else {
             let error: TokenErrorMessage = response.error.unwrap();
 
             let code: i64 = error.code;
             let message: String = error.message;
 
-            println!("{}", format!("Failed to login!\n[{code}] {message}"))
+            return Err(format!("Failed to login! [{code}] {message}").into())
         }
 
         return Ok(success)
     }
 
 
-    pub async fn refresh_token(&mut self) -> Result<bool, Error> {
+    pub async fn refresh_token(&mut self) -> Result<bool, Box<dyn Error>> {
         let url: &String = &self.connection_info.url;
 
         let request: RequestBuilder = reqwest::Client::new()
@@ -96,23 +96,21 @@ impl NginxProxyManagerClient {
         let success: bool = response.error.is_none();
 
         if success {
-            let _ = self.update_token_and_header(
-                response.token.unwrap()
-            );
+            self.update_token_and_header(response.token.unwrap())?;
         } else {
             let error: TokenErrorMessage = response.error.unwrap();
 
             let code: i64 = error.code;
             let message: String = error.message;
 
-            println!("{}", format!("Failed to refresh token!\n[{code}] {message}"))
+            return Err(format!("Failed to refresh token! [{code}] {message}").into())
         }
 
-        return Ok(success)
+        Ok(success)
     }
 
 
-    pub async fn get_access_list(&mut self, name: String) -> Result<Option<AccessList>, Error> {
+    pub async fn get_access_list(&mut self, name: String) -> Result<Option<AccessList>, Box<dyn Error>> {
         let url: &String = &self.connection_info.url;
         
         let request: RequestBuilder = reqwest::Client::new()
@@ -128,12 +126,12 @@ impl NginxProxyManagerClient {
             }
         }
 
-        return Ok(None);
+        Ok(None)
     }
 
 
-    pub async fn update_access_list(&self, mut access_list: AccessList) -> Result<AccessList, Error> {
-        let url = &self.connection_info.url;
+    pub async fn update_access_list(&self, mut access_list: AccessList) -> Result<AccessList, Box<dyn Error>> {
+        let url: &String = &self.connection_info.url;
 
         // NginxProxyManager doesn't like the access_list having an id when PUTing.
         let id: i64 = access_list.id.unwrap(); access_list.id = None;
@@ -146,6 +144,6 @@ impl NginxProxyManagerClient {
         let response: Response = request.send().await?;
         let response: AccessList = response.json().await?;
 
-        return Ok(response);
+        Ok(response)
     }
 }
