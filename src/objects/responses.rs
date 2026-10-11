@@ -40,7 +40,7 @@ impl AccessListClient {
 pub struct AccessList {
     // NginxProxyManager doesn't like the AccessList having an id when PUTing.
     #[serde(skip_serializing)]
-    pub id: Option<i64>,
+    pub id: i64,
     pub name: String,
     
     pub pass_auth: bool,

@@ -18,6 +18,7 @@ use crate::objects::{
 pub struct NginxProxyManagerClient {
     pub token: String,
     pub timeout: Duration,
+    pub logged_in: bool,
 
     pub header_info: HeaderMap,
     pub connection_info: ConnectionInformation,
@@ -30,6 +31,7 @@ impl NginxProxyManagerClient {
         NginxProxyManagerClient { 
             token: String::new(),
             timeout: Duration::from_secs(timeout.unwrap_or(5)),
+            logged_in: false,
 
             header_info: HeaderMap::new(),
             connection_info: ConnectionInformation::from(url, email, password),
@@ -41,6 +43,7 @@ impl NginxProxyManagerClient {
         NginxProxyManagerClient {
             token: String::new(),
             timeout: Duration::from_secs(5),
+            logged_in: false,
 
             header_info: HeaderMap::new(),
             connection_info: ConnectionInformation::from_env(),
@@ -73,6 +76,7 @@ impl NginxProxyManagerClient {
         let response: TokenResponse = response.json().await?;
 
         if response.token.is_some() {
+            self.logged_in = true;
             self.update_token_and_header(response.token.unwrap())?;
 
             Ok(true)
@@ -82,12 +86,18 @@ impl NginxProxyManagerClient {
             let code: i64 = error.code;
             let message: String = error.message;
 
+            self.logged_in = false;
+
             Err(format!("Failed to login! [{code}] {message}").into())
         }
     }
 
 
     pub async fn refresh_token(&mut self) -> Result<bool, Box<dyn Error>> {
+        if !self.logged_in {
+            self.login().await?;
+        }
+
         let url: &String = &self.connection_info.url;
 
         let request: RequestBuilder = reqwest::Client::new()
@@ -108,12 +118,18 @@ impl NginxProxyManagerClient {
             let code: i64 = error.code;
             let message: String = error.message;
 
+            self.logged_in = false;
+
             Err(format!("Failed to refresh token! [{code}] {message}").into())
         }
     }
 
 
     pub async fn get_access_list(&mut self, name: String) -> Result<Option<AccessList>, Box<dyn Error>> {
+        if !self.logged_in {
+            self.login().await?;
+        }
+        
         let url: &String = &self.connection_info.url;
         
         let request: RequestBuilder = reqwest::Client::new()
@@ -140,8 +156,12 @@ impl NginxProxyManagerClient {
     }
 
 
-    pub async fn update_access_list(&self, access_list: AccessList) -> Result<AccessList, Box<dyn Error>> {
-        let id: i64 = access_list.id.unwrap();
+    pub async fn update_access_list(&mut self, access_list: AccessList) -> Result<AccessList, Box<dyn Error>> {
+        if !self.logged_in {
+            self.login().await?;
+        }
+        
+        let id: i64 = access_list.id;
         let url: &String = &self.connection_info.url;
         
         let request: RequestBuilder = reqwest::Client::new()
