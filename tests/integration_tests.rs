@@ -1,4 +1,4 @@
-use std::{error::Error, ops::ControlFlow::Continue};
+use std::error::Error;
 
 use nginxproxymanager_client::{
     client::NginxProxyManagerClient, objects::{
