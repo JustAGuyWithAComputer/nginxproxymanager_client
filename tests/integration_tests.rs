@@ -39,7 +39,7 @@ async fn can_modify_access_list() {
     let mut client: NginxProxyManagerClient = NginxProxyManagerClient::from_env();
 
     assert_eq!(client.login().await.unwrap(), true, "failed to login!");
-o
+    
     let result: Option<AccessList> = client.get_access_list(access_list_name).await.unwrap();
 
     assert_eq!(result.is_some(), true, "failed to find Access List!");
