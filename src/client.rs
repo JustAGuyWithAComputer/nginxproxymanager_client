@@ -1,12 +1,9 @@
 use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 
 use crate::objects::{
-    responses::{
-        TokenResponse,
-        TokenFailResponse
+    information::ConnectionInformation, responses::{
+        AccessList, TokenResponse
     },
-
-    information::ConnectionInformation,
 };
 
 
@@ -59,23 +56,21 @@ impl NginxProxyManagerClient {
     pub async fn login(&mut self) -> bool {
         let client = reqwest::Client::new();
 
-        let response = client.post(
+        let response: TokenResponse = client.post(
             self.connection_info.url.to_string() + "/api/tokens"
-        ).json(&self.connection_info.credentials).send().await.unwrap();
+        ).json(&self.connection_info.credentials).send().await.unwrap().json().await.unwrap();
 
-        let success = response.status().is_success();
+        let success = response.error.is_none();
 
         if success {
             self.update_token_and_header(
-                response.json::<TokenResponse>().await.unwrap().token
+                response.token
             );
         } else {
-            let token_response = response.json::<TokenFailResponse>().await.unwrap();
-
             println!(
                 "Failed to connect login!\n[{:#?}] {:#?}", 
-                token_response.error.code, 
-                token_response.error.message
+                response.error.clone().unwrap().code, 
+                response.error.unwrap().message
             )
         }
 
@@ -86,27 +81,54 @@ impl NginxProxyManagerClient {
     pub async fn refresh_token(&mut self) -> bool {
         let client = reqwest::Client::new();
 
-        let response = client.get(
+        let response: TokenResponse = client.get(
             self.connection_info.url.to_string() + "/api/tokens"
-        ).headers(self.header_info.clone()).send().await.unwrap();
+        ).headers(self.header_info.clone()).send().await.unwrap().json().await.unwrap();
 
-        let success = response.status().is_success();
+        let success = response.error.is_none();
 
         if success {
             self.update_token_and_header(
-                response.json::<TokenResponse>().await.unwrap().token
+                response.token
             );
         } else {
-            let token_response = response.json::<TokenFailResponse>().await.unwrap();
-
             println!(
-                "Failed to refresh token!\n[{:#?}] {:#?}", 
-                token_response.error.code, 
-                token_response.error.message
+                "Failed to connect login!\n[{:#?}] {:#?}", 
+                response.error.clone().unwrap().code, 
+                response.error.unwrap().message
             )
         }
 
         return success
     }
 
+
+    pub async fn get_access_list(&mut self, name: String) -> Option<AccessList> {
+        let client = reqwest::Client::new();
+        let all_access_lists: Vec<AccessList> = client.get(
+            self.connection_info.url.to_string() + "/api/nginx/access-lists?expand=owner%2Citems%2Cclients"
+        ).headers(self.header_info.clone()).send().await.unwrap().json().await.unwrap();
+
+        for access_list in all_access_lists {
+            if access_list.name.to_lowercase() == name.to_lowercase() {
+                return Some(access_list)
+            }
+        }
+
+        return None;
+    }
+
+
+    pub async fn update_access_list(&self, mut access_list: AccessList) -> AccessList {
+        let client = reqwest::Client::new();
+
+        let id = access_list.id.unwrap();
+        access_list.id = None;
+
+        let response: AccessList = client.put(
+            self.connection_info.url.to_string() + "/api/nginx/access-lists/" + &id.to_string()
+        ).headers(self.header_info.clone()).json(&access_list).send().await.unwrap().json().await.unwrap();
+
+        return response;
+    }
 }

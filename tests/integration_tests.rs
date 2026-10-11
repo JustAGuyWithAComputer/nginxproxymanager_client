@@ -1,6 +1,7 @@
 use nginxproxymanager_client::{
-    client::NginxProxyManagerClient,
-    objects::information::ConnectionInformation
+    client::NginxProxyManagerClient, objects::{
+        information::ConnectionInformation, responses::{AccessList, AccessListClient}
+    }
 };
 
 
@@ -19,7 +20,7 @@ fn connection_information_valid() {
 
 
 #[tokio::test]
-async fn login_information_valid() {
+async fn login_credentials_valid() {
     let mut client = NginxProxyManagerClient::from_env();
 
     assert_eq!(client.login().await, true, "failed to login!");
@@ -36,9 +37,39 @@ async fn can_modify_access_list() {
 
     assert_eq!(client.login().await, true, "failed to login!");
 
-    /*let client = NginxProxyManagerClient::new(
-        ConnectionInformation::from_env()
-    );*/
+    let access_list_result = client.get_access_list(target_access_list).await;
+
+    assert_eq!(access_list_result.is_some(), true, "failed to find Access List!");
+
+    if access_list_result.is_some() {
+        let mut access_list = access_list_result.unwrap();
+
+        let mut test_entry_index: usize = 0;
+        let mut test_entry_exists = false;
+
+        for (index, entry) in access_list.clients.iter().enumerate() {
+            if entry.address == "127.0.0.1" {
+                test_entry_index = index;
+                test_entry_exists = true;
+            }
+        }
+
+        if test_entry_exists {
+            access_list.clients.remove(test_entry_index);
+        } else {
+            access_list.clients.push(
+                AccessListClient::from(
+                "127.0.0.1".to_string(),
+                "allow".to_string()
+                )
+            );
+        }
+
+        let original = serde_json::to_string(&access_list.clients).unwrap();
+        let result = serde_json::to_string(&client.update_access_list(access_list).await.clients).unwrap();
+
+        assert_eq!(original, result, "failed to update access list!");
+    }
     
 }
 
