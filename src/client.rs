@@ -1,7 +1,13 @@
-use reqwest::{Error, Response, header::{AUTHORIZATION, HeaderMap, HeaderValue}};
+use reqwest::{
+    Error, Response, 
+    header::{
+        AUTHORIZATION, HeaderMap, HeaderValue
+    }
+};
 
 use crate::objects::{
-    information::ConnectionInformation, responses::{
+    information::ConnectionInformation,
+    responses::{
         AccessList, TokenResponse
     },
 };
@@ -48,7 +54,10 @@ impl NginxProxyManagerClient {
             let value = self.header_info.get_mut(AUTHORIZATION).unwrap();
             *value = HeaderValue::from_str(&self.bearer).unwrap();
         } else {
-            self.header_info.insert(AUTHORIZATION, HeaderValue::from_str(&self.bearer).unwrap());
+            self.header_info.insert(
+                AUTHORIZATION, 
+                HeaderValue::from_str(&self.bearer).unwrap()
+            );
         }
     }
 
@@ -133,7 +142,9 @@ impl NginxProxyManagerClient {
         
         let request = reqwest::Client::new()
             .put(
-                self.connection_info.url.to_string() + "/api/nginx/access-lists/" + &id.to_string()
+                self.connection_info.url.to_string() 
+                    + "/api/nginx/access-lists/" 
+                    + &id.to_string()
             )
             .headers(self.header_info.clone())
             .json(&access_list);
