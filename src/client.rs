@@ -43,12 +43,12 @@ impl NginxProxyManagerClient {
     }
 
 
-    fn update_token_and_header(&mut self, new_token: String) -> Result<bool, Box<dyn Error>> {
-        self.token = new_token.clone();
+    fn update_token_and_header(&mut self, token: String) -> Result<bool, Box<dyn Error>> {
+        self.token = token.clone();
 
         self.header_info.insert(
             AUTHORIZATION, 
-            HeaderValue::from_str(&format!("Bearer {new_token}"))?
+            HeaderValue::from_str(&format!("Bearer {token}"))?
         );
 
         Ok(true)
