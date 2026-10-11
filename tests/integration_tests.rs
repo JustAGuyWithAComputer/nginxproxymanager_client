@@ -35,17 +35,17 @@ async fn login_credentials_valid() {
 
 #[tokio::test]
 async fn can_modify_access_list() {
+    let access_list_name: String = dotenvy::var("NPM_CLIENT_ACCESS_LIST").unwrap();
     let mut client: NginxProxyManagerClient = NginxProxyManagerClient::from_env();
-    let target_access_list: String = dotenvy::var("NPM_CLIENT_ACCESS_LIST").unwrap();
 
     assert_eq!(client.login().await.unwrap(), true, "failed to login!");
+o
+    let result: Option<AccessList> = client.get_access_list(access_list_name).await.unwrap();
 
-    let access_list_result: Option<AccessList> = client.get_access_list(target_access_list).await.unwrap();
+    assert_eq!(result.is_some(), true, "failed to find Access List!");
 
-    assert_eq!(access_list_result.is_some(), true, "failed to find Access List!");
-
-    if access_list_result.is_some() {
-        let mut access_list: AccessList = access_list_result.unwrap();
+    if result.is_some() {
+        let mut access_list: AccessList = result.unwrap();
 
         let mut test_entry_index: usize = 0;
         let mut test_entry_exists = false;
