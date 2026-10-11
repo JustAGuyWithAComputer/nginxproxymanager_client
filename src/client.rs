@@ -56,9 +56,15 @@ impl NginxProxyManagerClient {
     pub async fn login(&mut self) -> bool {
         let client = reqwest::Client::new();
 
-        let response: TokenResponse = client.post(
-            self.connection_info.url.to_string() + "/api/tokens"
-        ).json(&self.connection_info.credentials).send().await.unwrap().json().await.unwrap();
+        let response: TokenResponse = client
+            .post(self.connection_info.url.to_string() + "/api/tokens")
+            .json(&self.connection_info.credentials)
+            .send()
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
 
         let success = response.error.is_none();
 
@@ -81,9 +87,15 @@ impl NginxProxyManagerClient {
     pub async fn refresh_token(&mut self) -> bool {
         let client = reqwest::Client::new();
 
-        let response: TokenResponse = client.get(
-            self.connection_info.url.to_string() + "/api/tokens"
-        ).headers(self.header_info.clone()).send().await.unwrap().json().await.unwrap();
+        let response: TokenResponse = client
+            .get(self.connection_info.url.to_string() + "/api/tokens")
+            .headers(self.header_info.clone())
+            .send()
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
 
         let success = response.error.is_none();
 
@@ -105,9 +117,18 @@ impl NginxProxyManagerClient {
 
     pub async fn get_access_list(&mut self, name: String) -> Option<AccessList> {
         let client = reqwest::Client::new();
-        let all_access_lists: Vec<AccessList> = client.get(
-            self.connection_info.url.to_string() + "/api/nginx/access-lists?expand=owner%2Citems%2Cclients"
-        ).headers(self.header_info.clone()).send().await.unwrap().json().await.unwrap();
+        let all_access_lists: Vec<AccessList> = client
+            .get(reqwest::Url::parse_with_params(
+                &(self.connection_info.url.to_string() + "/api/nginx/access-lists"),
+                &[("expand", "owner,items,clients")]
+            ).unwrap())
+            .headers(self.header_info.clone())
+            .send()
+            .await.unwrap()
+            .json()
+            .await
+            .unwrap();
+            //.unwrap();
 
         for access_list in all_access_lists {
             if access_list.name.to_lowercase() == name.to_lowercase() {
@@ -125,9 +146,16 @@ impl NginxProxyManagerClient {
         let id = access_list.id.unwrap();
         access_list.id = None;
 
-        let response: AccessList = client.put(
-            self.connection_info.url.to_string() + "/api/nginx/access-lists/" + &id.to_string()
-        ).headers(self.header_info.clone()).json(&access_list).send().await.unwrap().json().await.unwrap();
+        let response: AccessList = client
+            .put(self.connection_info.url.to_string() + "/api/nginx/access-lists/" + &id.to_string())
+            .headers(self.header_info.clone())
+            .json(&access_list)
+            .send()
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
 
         return response;
     }
