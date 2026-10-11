@@ -69,7 +69,7 @@ async fn can_modify_access_list() -> Result<(), Box<dyn Error>> {
     let mut access_list: AccessList = client.get_access_list(access_list_name).await?;
 
     let mut test_entry_index: usize = 0;
-    let mut test_entry_exists = false;
+    let mut test_entry_exists: bool = false;
 
     for (index, entry) in access_list.clients.iter().enumerate() {
         if entry.address == "127.0.0.1" {
