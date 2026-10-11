@@ -21,14 +21,13 @@ pub struct NginxProxyManagerClient {
 
 impl NginxProxyManagerClient {
 
-    pub fn new(connection_info: ConnectionInformation) -> Self {
+    pub fn from(url: String, email: String, password: String) -> Self {
         NginxProxyManagerClient { 
             header_info: HeaderMap::new(),
-            connection_info: connection_info,
+            connection_info: ConnectionInformation::from(url, email, password),
 
             token: String::new(),
             bearer: String::new(),
-
         }
     }
 
@@ -45,7 +44,7 @@ impl NginxProxyManagerClient {
 
 
     fn update_token_and_header(&mut self, new_token: String) {
-        self.bearer = String::from("Bearer ") + &new_token.to_string();
+        self.bearer = "Bearer ".to_owned() + &new_token;
         self.token = new_token;
 
         if self.header_info.contains_key(AUTHORIZATION) {

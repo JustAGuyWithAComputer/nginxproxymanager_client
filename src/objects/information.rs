@@ -30,7 +30,7 @@ impl ConnectionInformation {
     }
 
 
-    pub fn new(url: String, email: String, password: String) -> Self {
+    pub fn from(url: String, email: String, password: String) -> Self {
         ConnectionInformation { 
             url: ConnectionInformation::trim_url(url),
             credentials: CredentialInformation::new(email, password)
@@ -48,7 +48,7 @@ impl ConnectionInformation {
         let email = env::var("NPM_CLIENT_EMAIL").unwrap_or("".to_string());
         let password = env::var("NPM_CLIENT_PASSWORD").unwrap_or("".to_string());
 
-        ConnectionInformation::new(
+        ConnectionInformation::from(
             ConnectionInformation::trim_url(url),
             email,
             password
