@@ -34,6 +34,14 @@ async fn login_credentials_valid() {
 
 
 #[tokio::test]
+async fn automatic_login_valid() {
+    let mut client = NginxProxyManagerClient::from_env();
+
+    assert_eq!(client.refresh_token().await.unwrap(), true, "failed to login automatically!")
+}
+
+
+#[tokio::test]
 async fn can_modify_access_list() {
     let access_list_name: String = dotenvy::var("NPM_CLIENT_ACCESS_LIST").unwrap();
     let mut client: NginxProxyManagerClient = NginxProxyManagerClient::from_env();
