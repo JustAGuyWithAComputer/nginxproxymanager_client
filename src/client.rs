@@ -109,6 +109,7 @@ impl NginxProxyManagerClient {
         let response: TokenResponse = response.json().await?;
 
         if response.token.is_some() {
+            self.logged_in = true;
             self.update_token_and_header(response.token.unwrap())?;
 
             Ok(true)
