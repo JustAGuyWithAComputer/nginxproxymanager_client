@@ -124,13 +124,19 @@ impl NginxProxyManagerClient {
         let response: Response = request.send().await?;
         let response: Vec<AccessList> = response.json().await?;
 
+        let mut matching_access_list: Option<AccessList> = None;
+
         for access_list in response {
             if access_list.name == name {
-                return Ok(Some(access_list))
+                matching_access_list = Some(access_list);
             }
         }
 
-        Err(format!("Failed to find Access List: '{name}'").into())
+        if matching_access_list.is_some() {
+            Ok(matching_access_list)
+        } else {
+            Err(format!("Failed to find Access List: '{name}'").into())
+        }
     }
 
 
