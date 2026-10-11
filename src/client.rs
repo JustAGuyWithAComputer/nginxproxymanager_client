@@ -127,7 +127,7 @@ impl NginxProxyManagerClient {
         let response: Vec<AccessList> = response.json().await?;
 
         for access_list in response {
-            if access_list.name.to_lowercase() == name.to_lowercase() {
+            if access_list.name == name {
                 return Ok(Some(access_list))
             }
         }
