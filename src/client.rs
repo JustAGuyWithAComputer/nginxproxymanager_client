@@ -5,9 +5,8 @@ use reqwest::{
 };
 
 use crate::objects::{
-    information::ConnectionInformation,
-    responses::{
-        AccessList, TokenResponse
+    information::ConnectionInformation, responses::{
+        AccessList, TokenErrorMessage, TokenResponse
     },
 };
 
@@ -72,11 +71,12 @@ impl NginxProxyManagerClient {
                 response.token.unwrap()
             );
         } else {
-            println!(
-                "Failed to login!\n[{:#?}] {:#?}", 
-                response.error.clone().unwrap().code, 
-                response.error.unwrap().message
-            )
+            let error: TokenErrorMessage = response.error.unwrap();
+
+            let code: i64 = error.code;
+            let message: String = error.message;
+
+            println!("{}", format!("Failed to login!\n[{code}] {message}"))
         }
 
         return Ok(success)
@@ -100,11 +100,12 @@ impl NginxProxyManagerClient {
                 response.token.unwrap()
             );
         } else {
-            println!(
-                "Failed to connect login!\n[{:#?}] {:#?}", 
-                response.error.clone().unwrap().code, 
-                response.error.unwrap().message
-            )
+            let error: TokenErrorMessage = response.error.unwrap();
+
+            let code: i64 = error.code;
+            let message: String = error.message;
+
+            println!("{}", format!("Failed to refresh token!\n[{code}] {message}"))
         }
 
         return Ok(success)
