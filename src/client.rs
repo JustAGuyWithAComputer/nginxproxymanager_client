@@ -1,6 +1,6 @@
 use reqwest::{
     Error, RequestBuilder, Response, header::{
-        AUTHORIZATION, HeaderMap, HeaderValue
+        AUTHORIZATION, HeaderMap, HeaderValue, InvalidHeaderValue
     }
 };
 
@@ -42,13 +42,15 @@ impl NginxProxyManagerClient {
     }
 
 
-    fn update_token_and_header(&mut self, new_token: String) {
+    fn update_token_and_header(&mut self, new_token: String) -> Result<bool, InvalidHeaderValue> {
         self.token = new_token.clone();
 
         self.header_info.insert(
             AUTHORIZATION, 
-            HeaderValue::from_str(&format!("Bearer {new_token}")).unwrap()
+            HeaderValue::from_str(&format!("Bearer {new_token}"))?
         );
+
+        Ok(true)
     }
 
 
@@ -66,7 +68,7 @@ impl NginxProxyManagerClient {
         let success: bool = response.error.is_none();
 
         if success {
-            self.update_token_and_header(
+            let _ = self.update_token_and_header(
                 response.token.unwrap()
             );
         } else {
@@ -94,7 +96,7 @@ impl NginxProxyManagerClient {
         let success: bool = response.error.is_none();
 
         if success {
-            self.update_token_and_header(
+            let _ = self.update_token_and_header(
                 response.token.unwrap()
             );
         } else {
@@ -113,7 +115,7 @@ impl NginxProxyManagerClient {
         let url: &String = &self.connection_info.url;
         
         let request: RequestBuilder = reqwest::Client::new()
-            .get(format!("{url}/api/nginx/access-lists?expand=owner%2Citems%2Cclients"))
+            .get(format!("{url}/api/nginx/access-lists?expand=clients"))
             .headers(self.header_info.clone());
 
         let response: Response = request.send().await?;
