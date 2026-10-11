@@ -1,4 +1,4 @@
-use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
+use reqwest::{Error, Response, header::{AUTHORIZATION, HeaderMap, HeaderValue}};
 
 use crate::objects::{
     information::ConnectionInformation, responses::{
@@ -53,18 +53,14 @@ impl NginxProxyManagerClient {
     }
 
 
-    pub async fn login(&mut self) -> bool {
-        let client = reqwest::Client::new();
-
-        let response: TokenResponse = client
+    pub async fn login(&mut self) -> Result<bool, Error> {
+        let request = reqwest::Client::new()
             .post(self.connection_info.url.to_string() + "/api/tokens")
-            .json(&self.connection_info.credentials)
-            .send()
-            .await
-            .unwrap()
-            .json()
-            .await
-            .unwrap();
+            .json(&self.connection_info.credentials);
+
+
+        let response: Response = request.send().await?;
+        let response: TokenResponse = response.json().await?;
 
         let success = response.error.is_none();
 
@@ -80,22 +76,17 @@ impl NginxProxyManagerClient {
             )
         }
 
-        return success
+        return Ok(success)
     }
 
 
-    pub async fn refresh_token(&mut self) -> bool {
-        let client = reqwest::Client::new();
-
-        let response: TokenResponse = client
+    pub async fn refresh_token(&mut self) -> Result<bool, Error> {
+        let request = reqwest::Client::new()
             .get(self.connection_info.url.to_string() + "/api/tokens")
-            .headers(self.header_info.clone())
-            .send()
-            .await
-            .unwrap()
-            .json()
-            .await
-            .unwrap();
+            .headers(self.header_info.clone());
+
+        let response: Response = request.send().await?;
+        let response: TokenResponse = response.json().await?;
 
         let success = response.error.is_none();
 
@@ -111,52 +102,45 @@ impl NginxProxyManagerClient {
             )
         }
 
-        return success
+        return Ok(success)
     }
 
 
-    pub async fn get_access_list(&mut self, name: String) -> Option<AccessList> {
-        let client = reqwest::Client::new();
-        let all_access_lists: Vec<AccessList> = client
+    pub async fn get_access_list(&mut self, name: String) -> Result<Option<AccessList>, Error> {
+        let request = reqwest::Client::new()
             .get(reqwest::Url::parse_with_params(
                 &(self.connection_info.url.to_string() + "/api/nginx/access-lists"),
                 &[("expand", "owner,items,clients")]
             ).unwrap())
-            .headers(self.header_info.clone())
-            .send()
-            .await.unwrap()
-            .json()
-            .await
-            .unwrap();
-            //.unwrap();
+            .headers(self.header_info.clone());
 
-        for access_list in all_access_lists {
+        let response: Response = request.send().await?;
+        let response: Vec<AccessList> = response.json().await?;
+
+        for access_list in response {
             if access_list.name.to_lowercase() == name.to_lowercase() {
-                return Some(access_list)
+                return Ok(Some(access_list))
             }
         }
 
-        return None;
+        return Ok(None);
     }
 
 
-    pub async fn update_access_list(&self, mut access_list: AccessList) -> AccessList {
-        let client = reqwest::Client::new();
-
+    pub async fn update_access_list(&self, mut access_list: AccessList) -> Result<AccessList, Error> {
         let id = access_list.id.unwrap();
         access_list.id = None;
-
-        let response: AccessList = client
-            .put(self.connection_info.url.to_string() + "/api/nginx/access-lists/" + &id.to_string())
+        
+        let request = reqwest::Client::new()
+            .put(
+                self.connection_info.url.to_string() + "/api/nginx/access-lists/" + &id.to_string()
+            )
             .headers(self.header_info.clone())
-            .json(&access_list)
-            .send()
-            .await
-            .unwrap()
-            .json()
-            .await
-            .unwrap();
+            .json(&access_list);
 
-        return response;
+        let response: Response = request.send().await?;
+        let response: AccessList = response.json().await?;
+
+        return Ok(response);
     }
 }

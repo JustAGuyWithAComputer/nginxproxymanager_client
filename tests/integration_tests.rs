@@ -1,7 +1,10 @@
 use nginxproxymanager_client::{
-    client::NginxProxyManagerClient, objects::{
-        information::ConnectionInformation, responses::{AccessList, AccessListClient}
-    }
+    objects::{
+        information::ConnectionInformation, 
+        responses::AccessListClient
+    },
+
+    client::NginxProxyManagerClient, 
 };
 
 
@@ -23,10 +26,10 @@ fn connection_information_valid() {
 async fn login_credentials_valid() {
     let mut client = NginxProxyManagerClient::from_env();
 
-    assert_eq!(client.login().await, true, "failed to login!");
+    assert_eq!(client.login().await.unwrap(), true, "failed to login!");
 
-    assert_eq!(client.refresh_token().await, true, "failed to refresh token!");
-    assert_eq!(client.refresh_token().await, true, "failed to refresh token!");
+    assert_eq!(client.refresh_token().await.unwrap(), true, "failed to refresh token!");
+    assert_eq!(client.refresh_token().await.unwrap(), true, "failed to refresh token!");
 }
 
 
@@ -35,7 +38,7 @@ async fn can_modify_access_list() {
     let mut client = NginxProxyManagerClient::from_env();
     let target_access_list = dotenvy::var("NPM_CLIENT_ACCESS_LIST").unwrap();
 
-    assert_eq!(client.login().await, true, "failed to login!");
+    assert_eq!(client.login().await.unwrap(), true, "failed to login!");
 
     let access_list_result = client.get_access_list(target_access_list).await;
 
