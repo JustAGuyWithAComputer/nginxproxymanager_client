@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, time::Duration};
 
 use reqwest::{
     RequestBuilder, Response, header::{
@@ -15,6 +15,7 @@ use crate::objects::{
 
 pub struct NginxProxyManagerClient {
     pub token: String,
+    pub timeout: Duration,
 
     pub header_info: HeaderMap,
     pub connection_info: ConnectionInformation,
@@ -23,9 +24,10 @@ pub struct NginxProxyManagerClient {
 
 impl NginxProxyManagerClient {
 
-    pub fn from(url: String, email: String, password: String) -> Self {
+    pub fn from(url: String, email: String, password: String, timeout: Option<u64>) -> Self {
         NginxProxyManagerClient { 
             token: String::new(),
+            timeout: Duration::from_secs(timeout.unwrap_or(5)),
 
             header_info: HeaderMap::new(),
             connection_info: ConnectionInformation::from(url, email, password),
@@ -36,6 +38,7 @@ impl NginxProxyManagerClient {
     pub fn from_env() -> Self {
         NginxProxyManagerClient {
             token: String::new(),
+            timeout: Duration::from_secs(5),
 
             header_info: HeaderMap::new(),
             connection_info: ConnectionInformation::from_env(),
@@ -60,7 +63,8 @@ impl NginxProxyManagerClient {
 
         let request = reqwest::Client::new()
             .post(format!("{url}/api/tokens"))
-            .json(&self.connection_info.credentials);
+            .json(&self.connection_info.credentials)
+            .timeout(self.timeout);
 
 
         let response: Response = request.send().await?;
@@ -69,14 +73,14 @@ impl NginxProxyManagerClient {
         if response.token.is_some() {
             self.update_token_and_header(response.token.unwrap())?;
 
-            return Ok(true)
+            Ok(true)
         } else {
             let error: TokenErrorMessage = response.error.unwrap();
 
             let code: i64 = error.code;
             let message: String = error.message;
 
-            return Err(format!("Failed to login! [{code}] {message}").into())
+            Err(format!("Failed to login! [{code}] {message}").into())
         }
     }
 
@@ -86,7 +90,8 @@ impl NginxProxyManagerClient {
 
         let request: RequestBuilder = reqwest::Client::new()
             .get(format!("{url}/api/tokens"))
-            .headers(self.header_info.clone());
+            .headers(self.header_info.clone())
+            .timeout(self.timeout);
 
         let response: Response = request.send().await?;
         let response: TokenResponse = response.json().await?;
@@ -94,14 +99,14 @@ impl NginxProxyManagerClient {
         if response.token.is_some() {
             self.update_token_and_header(response.token.unwrap())?;
 
-            return Ok(true)
+            Ok(true)
         } else {
             let error: TokenErrorMessage = response.error.unwrap();
 
             let code: i64 = error.code;
             let message: String = error.message;
 
-            return Err(format!("Failed to refresh token! [{code}] {message}").into())
+            Err(format!("Failed to refresh token! [{code}] {message}").into())
         }
     }
 
@@ -111,7 +116,8 @@ impl NginxProxyManagerClient {
         
         let request: RequestBuilder = reqwest::Client::new()
             .get(format!("{url}/api/nginx/access-lists?expand=clients"))
-            .headers(self.header_info.clone());
+            .headers(self.header_info.clone())
+            .timeout(self.timeout);
 
         let response: Response = request.send().await?;
         let response: Vec<AccessList> = response.json().await?;
@@ -135,7 +141,8 @@ impl NginxProxyManagerClient {
         let request: RequestBuilder = reqwest::Client::new()
             .put(format!("{url}/api/nginx/access-lists/{id}"))
             .headers(self.header_info.clone())
-            .json(&access_list);
+            .json(&access_list)
+            .timeout(self.timeout);
 
         let response: Response = request.send().await?;
         let response: AccessList = response.json().await?;
