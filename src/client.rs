@@ -48,9 +48,8 @@ impl NginxProxyManagerClient {
         self.token = new_token;
 
         if self.header_info.contains_key(AUTHORIZATION) {
-            if let Some(value) = self.header_info.get_mut(AUTHORIZATION) {
-                *value = HeaderValue::from_str(&self.bearer).unwrap();
-            }
+            let value = self.header_info.get_mut(AUTHORIZATION).unwrap();
+            *value = HeaderValue::from_str(&self.bearer).unwrap();
         } else {
             self.header_info.insert(AUTHORIZATION, HeaderValue::from_str(&self.bearer).unwrap());
         }
