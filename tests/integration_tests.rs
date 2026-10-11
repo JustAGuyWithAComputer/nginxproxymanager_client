@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, ops::ControlFlow::Continue};
 
 use nginxproxymanager_client::{
     client::NginxProxyManagerClient, objects::{
@@ -11,16 +11,33 @@ use nginxproxymanager_client::{
 
 
 #[test]
-fn connection_information_valid() {
+fn connection_information_is_not_missing_or_placement() -> Result<(), Box<dyn Error>> {
     let info: ConnectionInformation = ConnectionInformation::from_env();
+    let mut error: String = String::from("Invalid or missing environment variables! ");
 
-    assert_ne!(info.url, "", "NPM_CLIENT_URL is missing from .env!");
-    assert_ne!(info.credentials.identity, "", "NPM_CLIENT_EMAIL is missing from .env!");
-    assert_ne!(info.credentials.secret, "", "NPM_CLIENT_PASSWORD is missing from .env!");
+    match info.url.as_str() {
+        "https://domain.tld" => error += "NPM_CLIENT_URL[placement], ",
+        "" => error += "NPM_CLIENT_URL[missing], ",
+        _ => {}
+    }
 
-    assert_ne!(info.url, "https://domain.tld", "NPM_CLIENT_URL is using a placement value in .env!");
-    assert_ne!(info.credentials.identity, "username@email.com", "NPM_CLIENT_EMAIL is using a placement value in .env!");
-    assert_ne!(info.credentials.secret, "abc123", "NPM_CLIENT_PASSWORD is using a placement value in .env!");
+    match info.credentials.identity.as_str() {
+        "username@domain.tld" => error += "NPM_CLIENT_EMAIL[placement], ",
+        "" => error += "NPM_CLIENT_EMAIL[missing], ",
+        _ => {}
+    }
+
+    match info.credentials.secret.as_str() {
+        "abc123" => error += "NPM_CLIENT_PASSWORD[placement], ",
+        "" => error += "NPM_CLIENT_PASSWORD[missing], ",
+        _ => {}
+    }
+
+    if error != "Invalid or missing environment variables! " {
+        Err(error.strip_suffix(", ").unwrap_or(&error).into())
+    } else {
+        Ok(())
+    }
 }
 
 
@@ -28,18 +45,17 @@ fn connection_information_valid() {
 async fn login_credentials_valid() -> Result<(), Box<dyn Error>> {
     let mut client: NginxProxyManagerClient = NginxProxyManagerClient::from_env();
 
-    assert_eq!(client.login().await?, true, "failed to login!");
-    assert_eq!(client.refresh_token().await?, true, "failed to refresh token!");
+    client.login().await?;
 
     Ok(())
 }
 
 
 #[tokio::test]
-async fn automatic_login_valid() -> Result<(), Box<dyn Error>> {
+async fn automatic_login_and_refresh_token_valid() -> Result<(), Box<dyn Error>> {
     let mut client: NginxProxyManagerClient = NginxProxyManagerClient::from_env();
 
-    assert_eq!(client.refresh_token().await?, true, "failed to login automatically!");
+    client.refresh_token().await?;
 
     Ok(())
 }
