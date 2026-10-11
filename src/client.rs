@@ -3,13 +3,18 @@ use std::{
 };
 
 use reqwest::{
-    RequestBuilder, Response, header::{
+    RequestBuilder, Response, 
+
+    header::{
         AUTHORIZATION, HeaderMap, HeaderValue
     }
 };
+use serde::de::DeserializeOwned;
 
 use crate::objects::{
-    information::ConnectionInformation, responses::{
+    information::ConnectionInformation, 
+
+    responses::{
         AccessList, TokenErrorMessage, TokenResponse
     },
 };
@@ -64,6 +69,14 @@ impl NginxProxyManagerClient {
     }
 
 
+    async fn send_into<T: DeserializeOwned>(request: RequestBuilder) -> Result<T, Box<dyn Error>> {
+        let response: Response = request.send().await?;
+        let data: T = response.json().await?;
+
+        Ok(data)
+    }
+
+
     pub async fn login(&mut self) -> Result<bool, Box<dyn Error>> {
         let url: &String = &self.connection_info.url;
 
@@ -72,9 +85,7 @@ impl NginxProxyManagerClient {
             .json(&self.connection_info.credentials)
             .timeout(self.timeout);
 
-
-        let response: Response = request.send().await?;
-        let response: TokenResponse = response.json().await?;
+        let response: TokenResponse = NginxProxyManagerClient::send_into(request).await?;
 
         if response.token.is_some() {
             self.update_token_and_header(response.token.unwrap())?;
@@ -105,8 +116,7 @@ impl NginxProxyManagerClient {
             .headers(self.header_info.clone())
             .timeout(self.timeout);
 
-        let response: Response = request.send().await?;
-        let response: TokenResponse = response.json().await?;
+        let response: TokenResponse = NginxProxyManagerClient::send_into(request).await?;
 
         if response.token.is_some() {
             self.update_token_and_header(response.token.unwrap())?;
@@ -137,8 +147,7 @@ impl NginxProxyManagerClient {
             .headers(self.header_info.clone())
             .timeout(self.timeout);
 
-        let response: Response = request.send().await?;
-        let response: Vec<AccessList> = response.json().await?;
+        let response: Vec<AccessList> = NginxProxyManagerClient::send_into(request).await?;
 
         let mut matching_access_list: Option<AccessList> = None;
 
@@ -170,8 +179,7 @@ impl NginxProxyManagerClient {
             .json(&access_list)
             .timeout(self.timeout);
 
-        let response: Response = request.send().await?;
-        let response: AccessList = response.json().await?;
+        let response: AccessList = NginxProxyManagerClient::send_into(request).await?;
         
         Ok(response)
     }
