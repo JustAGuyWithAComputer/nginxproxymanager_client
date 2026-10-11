@@ -122,7 +122,7 @@ impl NginxProxyManagerClient {
             }
         }
 
-        Err(format!("Failed to find Access List: \"{name}\"").into())
+        Err(format!("Failed to find Access List: '{name}'").into())
     }
 
 
