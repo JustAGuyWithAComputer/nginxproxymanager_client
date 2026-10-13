@@ -81,7 +81,7 @@ async fn can_modify_access_list() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         client.client_exists_in_access_list(access_list_name.clone(), "127.0.0.1".to_string()).await?, 
         true, 
-        "failed to update access list!"
+        "failed to add client to access list!"
     );
 
     client.remove_client_from_access_list(
@@ -91,7 +91,7 @@ async fn can_modify_access_list() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         client.client_exists_in_access_list(access_list_name.clone(), "127.0.0.1".to_string()).await?, 
         false, 
-        "failed to update access list!"
+        "failed to remove client from access list!"
     );
     
     Ok(())

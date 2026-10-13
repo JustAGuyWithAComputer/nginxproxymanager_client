@@ -99,7 +99,7 @@ impl NginxProxyManagerClient {
 
             self.logged_in = false;
 
-            Err(format!("Failed to login! [{code}] {message}").into())
+            Err(format!("Failed to login! [{code}] \"{message}\"").into())
         }
     }
 
@@ -130,7 +130,7 @@ impl NginxProxyManagerClient {
 
             self.logged_in = false;
 
-            Err(format!("Failed to refresh token! [{code}] {message}").into())
+            Err(format!("Failed to refresh token! [{code}] \"{message}\"").into())
         }
     }
 
@@ -160,7 +160,7 @@ impl NginxProxyManagerClient {
         if matching_access_list.is_some() {
             Ok(matching_access_list.unwrap())
         } else {
-            Err(format!("Failed to find Access List: '{name}'").into())
+            Err(format!("Failed to find Access List: \"{name}\"").into())
         }
     }
 
@@ -229,7 +229,7 @@ impl NginxProxyManagerClient {
         
             Ok(())
         } else {
-            Err(format!("Failed to find client {address} in {access_list_name}").into())
+            Err(format!("Failed to find client {address} in \"{access_list_name}\"").into())
         }
     }
 
