@@ -15,7 +15,7 @@ use crate::objects::{
     information::ConnectionInformation, 
 
     responses::{
-        AccessList, TokenErrorMessage, TokenResponse
+        AccessList, AccessListClient, TokenErrorMessage, TokenResponse
     },
 };
 
@@ -182,5 +182,70 @@ impl NginxProxyManagerClient {
         let response: AccessList = NginxProxyManagerClient::send_into(request).await?;
         
         Ok(response)
+    }
+
+
+    pub async fn add_client_to_access_list(&mut self, access_list_name: String, address: String, directive: String) -> Result<(), Box<dyn Error>> {
+        let mut access_list: AccessList = self.get_access_list(access_list_name.clone()).await?;
+        let mut already_exists: bool = false;
+
+        for client in access_list.clients.iter() {
+            if client.address == address {
+                already_exists = true;
+                break;
+            }
+        }
+
+        if already_exists {
+            Err(format!("{address} already exists in \"{access_list_name}\"").into())
+        } else {
+            access_list.clients.push(AccessListClient::from(address, directive));
+
+            self.update_access_list(access_list).await?;
+
+            Ok(())
+        }
+    }
+
+
+    pub async fn remove_client_from_access_list(&mut self, access_list_name: String, address: String) -> Result<(), Box<dyn Error>> {
+        let mut access_list: AccessList = self.get_access_list(access_list_name.clone()).await?;
+
+        let mut target_index: usize = 0;
+        let mut target_found: bool = false;
+
+        for (index, client) in access_list.clients.iter().enumerate() {
+            if client.address == address {
+                target_index = index;
+                target_found = true;
+                break;
+            }
+        }
+
+        if target_found {
+            access_list.clients.remove(target_index);
+
+            self.update_access_list(access_list).await?;
+        
+            Ok(())
+        } else {
+            Err(format!("Failed to find client {address} in {access_list_name}").into())
+        }
+    }
+
+
+    pub async fn client_exists_in_access_list(&mut self, access_list_name: String, address: String) -> Result<bool, Box<dyn Error>> {
+        let access_list: AccessList = self.get_access_list(access_list_name).await?;
+
+        let mut found = false;
+
+        for client in access_list.clients.iter() {
+            if client.address == address {
+                found = true;
+                break;
+            }
+        }
+
+        Ok(found)
     }
 }

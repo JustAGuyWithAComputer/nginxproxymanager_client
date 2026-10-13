@@ -66,35 +66,33 @@ async fn can_modify_access_list() -> Result<(), Box<dyn Error>> {
     let access_list_name: String = dotenvy::var("NPM_CLIENT_ACCESS_LIST")?;
     let mut client: NginxProxyManagerClient = NginxProxyManagerClient::from_env();
     
-    let mut access_list: AccessList = client.get_access_list(access_list_name).await?;
-
-    let mut test_entry_index: usize = 0;
-    let mut test_entry_exists: bool = false;
-
-    for (index, entry) in access_list.clients.iter().enumerate() {
-        if entry.address == "127.0.0.1" {
-            test_entry_index = index;
-            test_entry_exists = true;
-        }
+    if client.client_exists_in_access_list(
+        access_list_name.clone(), "127.0.0.1".to_string()
+    ).await? {
+        client.remove_client_from_access_list(
+            access_list_name.clone(), "127.0.0.1".to_string()
+        ).await?
     }
 
-    if test_entry_exists {
-        access_list.clients.remove(test_entry_index);
-    } else {
-        access_list.clients.push(
-            AccessListClient::from(
-            "127.0.0.1".to_string(),
-            "allow".to_string()
-            )
-        );
-    }
+    client.add_client_to_access_list(
+        access_list_name.clone(), "127.0.0.1".to_string(), "allow".to_string()
+    ).await?;
 
-    let original: String = serde_json::to_string(&access_list.clients)?;
-    let result: String = serde_json::to_string(
-        &client.update_access_list(access_list).await?.clients
-    )?;
+    assert_eq!(
+        client.client_exists_in_access_list(access_list_name.clone(), "127.0.0.1".to_string()).await?, 
+        true, 
+        "failed to update access list!"
+    );
 
-    assert_eq!(original, result, "failed to update access list!");
+    client.remove_client_from_access_list(
+        access_list_name.clone(), "127.0.0.1".to_string()
+    ).await?;
+
+    assert_eq!(
+        client.client_exists_in_access_list(access_list_name.clone(), "127.0.0.1".to_string()).await?, 
+        false, 
+        "failed to update access list!"
+    );
     
     Ok(())
 }
